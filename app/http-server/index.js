@@ -16,6 +16,12 @@ app.post('/signup' , (req , res) => {
 
     console.log(username);
     console.log(password);
+
+    return res.json({
+        message:"signup successful",
+        username,
+        password
+    })
 })
 
 
