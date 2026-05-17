@@ -1,1 +1,40 @@
-// step - 1  when should this pipleine should run 
+# step - 1 when should this pipeline run
+
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - "main"
+
+# jab bhi main branch pr kuch push ho tab run these jobs
+
+jobs:
+  redeploy_everything:
+    name: Redeploy Everything to staging cluster
+
+    # ab jo ye redeploy everything job hai use kya kya krna hoga
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into SERVER
+
+        # &> means pipe it into ssh_key file
+
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" &> ~/ssh_key
+
+          chmod 400 ~/ssh_key
+
+          ssh -i ~/ssh_key root@13.127.191.19
+
+          cd deployment-CI-CD/ && git pull
+
+          npm install
+
+          npm run build
+
+          pm2 restart all
+
+          EOF
