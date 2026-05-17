@@ -27,7 +27,7 @@ jobs:
 
           chmod 400 ~/ssh_key
 
-          ssh -i ~/ssh_key root@13.127.191.19
+          ssh -i ~/ssh_key root@<IP_ADDRESS>
 
           cd deployment-CI-CD/ && git pull
 
