@@ -20,20 +20,20 @@ jobs:
       - name: SSH into SERVER
 
         # &> means pipe it into ssh_key file
+        # echo yes isliye kr rhe kyuki known host wala scene ara usme
+        # host key verification failed ka error aata hai to usko yes krne ke liye we are echoing yes and then we are writing the private key into ssh_key file
 
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/ssh_key
 
-          chmod 400 ~/ssh_key
+          echo "yes" | ssh -i ~/ssh_key ubuntu@13.127.191.19
 
-          ssh -o StrictHostKeyChecking=no -i ~/ssh_key ubuntu@13.127.191.19 << 'EOF'
+          cd deployment-CI-CD/ && git pull
 
-            cd deployment-CI-CD/ && git pull
+          npm install
 
-            npm install
+          npm run build
 
-            npm run build
-
-            pm2 restart all
+          pm2 restart all
 
           EOF
