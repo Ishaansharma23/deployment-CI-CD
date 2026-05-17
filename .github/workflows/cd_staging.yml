@@ -11,11 +11,10 @@ on:
 
 jobs:
   redeploy_everything:
+    runs-on: ubuntu-latest
     name: Redeploy Everything to staging cluster
 
     # ab jo ye redeploy everything job hai use kya kya krna hoga
-
-    runs-on: ubuntu-latest
 
     steps:
       - name: SSH into SERVER
@@ -23,18 +22,18 @@ jobs:
         # &> means pipe it into ssh_key file
 
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" &> ~/ssh_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/ssh_key
 
           chmod 400 ~/ssh_key
 
-          ssh -i ~/ssh_key root@<IP_ADDRESS>
+          ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@<IP_ADDRESS> << 'EOF'
 
-          cd deployment-CI-CD/ && git pull
+            cd deployment-CI-CD/ && git pull
 
-          npm install
+            npm install
 
-          npm run build
+            npm run build
 
-          pm2 restart all
+            pm2 restart all
 
           EOF
