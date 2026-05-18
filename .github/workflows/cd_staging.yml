@@ -19,21 +19,31 @@ jobs:
     steps:
       - name: SSH into SERVER
 
-        # &> means pipe it into ssh_key file
-        # echo yes isliye kr rhe kyuki known host wala scene ara usme
-        # host key verification failed ka error aata hai to usko yes krne ke liye we are echoing yes and then we are writing the private key into ssh_key file
+        # > means write/output into ssh_key file
+        # private ssh key ko ssh_key file me store kr rhe hai
+        # host key verification failed ka error aata hai first time ssh me
+        # known_hosts trusted server fingerprints store krta hai
+        # /home/runner github actions machine ka home folder hai
+        # .ssh folder ssh related files store krta hai
+        # -t proper pseudo terminal allocate krta hai taaki pm2 wagera sahi chale
+        # bina -t k ssh non interactive mode m chala jata hai means normal cmd chl jayegi ls pwd pr pm2 sudo wgera kabhi proper terminal expect karti. to isliye 
+        # -t terminal deta hai virtual/pseudo taki proper shell environment mil jaye fir run hojati sb commands 
 
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/ssh_key
 
-          echo "yes" | ssh -i ~/ssh_key ubuntu@13.127.191.19
+          # .ssh folder banao
+          mkdir -p /home/runner/.ssh
 
-          cd deployment-CI-CD/ && git pull
+          ls /home/runner/.ssh
 
-          npm install
+          # empty known_hosts file create karo
+          touch /home/runner/.ssh/known_hosts
 
-          npm run build
+          # trusted server fingerprints known_hosts me daal do
+          echo "${{ secrets.KNOWN_HOSTS }}" > /home/runner/.ssh/known_hosts
 
-          pm2 restart all
+          # ssh key ko proper permissions do
+          chmod 400 ~/ssh_key
 
-          EOF
+          ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@64.227.147.124 -t "deployment-CI-CD/ && git pull origin main && export PATH=/root/.nvm/versions/node/v22.13.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin && npm install -g pnpm && pnpm install && pnpm run build && pm2 restart fe-server && pm2 restart http-server && pm2 restart ws-server"
